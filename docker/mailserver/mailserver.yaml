@@ -10,7 +10,7 @@ services:
             - ./docker-data/dms/config/:/tmp/docker-mailserver/
             - ../shared/dkim:/tmp/docker-mailserver/shared-dkim
             - /etc/localtime:/etc/localtime:ro
-            - ./docker-data/dms/config/resolv.conf:/etc/resolv.conf:ro
+            - ./config/resolv.conf:/etc/resolv.conf:ro
         environment:
             - ENABLE_RSPAMD=1
             - ENABLE_CLAMAV=1
