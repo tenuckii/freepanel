@@ -1,0 +1,32 @@
+services:
+    reverse-proxy:
+        image: docker.io/traefik:latest
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        command:
+            # Docker provider config:
+            - --providers.docker=true
+            - --providers.docker.exposedbydefault=false
+            - --entryPoints.http.address=:80
+            - --entryPoints.https.address=:443
+
+            # DMS ports you want to proxy:
+            - --entryPoints.mail-smtp.address=:25
+            - --entryPoints.mail-submission.address=:587
+            - --entryPoints.mail-submissions.address=:465
+            - --entryPoints.mail-imap.address=:143
+            - --entryPoints.mail-imaps.address=:993
+            - --entryPoints.mail-pop3.address=:110
+            - --entryPoints.mail-pop3s.address=:995
+        ports:
+            - "25:25"
+            - "80:80"
+            - "110:110"
+            - "143:143"
+            - "443:443"
+            - "465:465"
+            - "587:587"
+            - "993:993"
+            - "995:995"
+        networks:
+            - freepanel

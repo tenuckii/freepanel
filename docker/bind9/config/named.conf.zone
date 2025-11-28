@@ -1,0 +1,4 @@
+zone "creativite.home" IN {
+    type master;
+    file "/var/lib/bind/creativite.home.db";
+};

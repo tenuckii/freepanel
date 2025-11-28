@@ -1,0 +1,9 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    volumes:
+      - ./db/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=roundcube-mysql-pw
+      - MYSQL_DATABASE=roundcubemail

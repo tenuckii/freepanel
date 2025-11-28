@@ -1,0 +1,13 @@
+name: freepanel
+
+include:
+    - docker/bind9/bind9.yaml
+    - docker/traefik/traefik.yaml
+    - docker/mailserver/mailserver.yaml
+
+networks:
+    freepanel:
+        driver: bridge
+        ipam:
+          config:
+            - subnet: 172.21.0.0/16

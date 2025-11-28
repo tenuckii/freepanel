@@ -1,0 +1,20 @@
+services:
+  bind9:
+    container_name: freepanel-bind9
+    image: ubuntu/bind9:latest
+    environment:
+      - BIND9_USER=root
+      - TZ=America/Montreal
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - ./config:/etc/bind
+      - ./cache:/var/cache/bind
+      - ./records:/var/lib/bind
+      - ../shared/dkim:/var/lib/bind/dkim
+    restart: always
+    stop_grace_period: 1m
+    networks:
+      freepanel:
+        ipv4_address: 172.21.0.53

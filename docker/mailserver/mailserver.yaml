@@ -1,0 +1,71 @@
+services:
+    mailserver:
+        image: ghcr.io/docker-mailserver/docker-mailserver:latest
+        container_name: freepanel-mailserver
+        hostname: mail.localhost
+        volumes:
+            - ./docker-data/dms/mail-data/:/var/mail/
+            - ./docker-data/dms/mail-state/:/var/mail-state/
+            - ./docker-data/dms/mail-logs/:/var/log/mail/
+            - ./docker-data/dms/config/:/tmp/docker-mailserver/
+            - ../shared/dkim:/tmp/docker-mailserver/shared-dkim
+            - /etc/localtime:/etc/localtime:ro
+            - ./docker-data/dms/config/resolv.conf:/etc/resolv.conf:ro
+        environment:
+            - ENABLE_RSPAMD=1
+            - ENABLE_CLAMAV=1
+            - ENABLE_FAIL2BAN=1
+            - ENABLE_DKIM=0
+            - PERMIT_DOCKER=network
+            - SPOOF_PROTECTION=0
+            - DKIM_PATH=/tmp/docker-mailserver/shared-dkim
+        cap_add:
+            - NET_ADMIN # For Fail2Ban to work
+        restart: always
+        networks:
+            - freepanel
+        healthcheck:
+            test: ["CMD-SHELL", "ss -ltn | grep -q ':25'"]
+            interval: 1m
+            timeout: 10s
+            retries: 3
+        dns:
+            - 172.21.0.53
+        dns_search: []
+        labels:
+            - traefik.enable=true
+
+            # SMTP (port 25)
+            - traefik.tcp.routers.mail-smtp.rule=HostSNI(`*`)
+            - traefik.tcp.routers.mail-smtp.entrypoints=mail-smtp
+            - traefik.tcp.routers.mail-smtp.service=mail-smtp
+            - traefik.tcp.services.mail-smtp.loadbalancer.server.port=25
+            - traefik.tcp.services.mail-smtp.loadbalancer.proxyProtocol.version=2
+
+            # Submission (STARTTLS on 587)
+            - traefik.tcp.routers.mail-submission.rule=HostSNI(`*`)
+            - traefik.tcp.routers.mail-submission.entrypoints=mail-submission
+            - traefik.tcp.routers.mail-submission.service=mail-submission
+            - traefik.tcp.services.mail-submission.loadbalancer.server.port=587
+            - traefik.tcp.services.mail-submission.loadbalancer.proxyProtocol.version=2
+
+            # Implicit SMTPS (465)
+            - traefik.tcp.routers.mail-submissions.rule=HostSNI(`*`)
+            - traefik.tcp.routers.mail-submissions.entrypoints=mail-submissions
+            - traefik.tcp.routers.mail-submissions.service=mail-submissions
+            - traefik.tcp.services.mail-submissions.loadbalancer.server.port=465
+            - traefik.tcp.services.mail-submissions.loadbalancer.proxyProtocol.version=2
+
+            # IMAPS (993)
+            - traefik.tcp.routers.mail-imaps.rule=HostSNI(`*`)
+            - traefik.tcp.routers.mail-imaps.entrypoints=mail-imaps
+            - traefik.tcp.routers.mail-imaps.service=mail-imaps
+            - traefik.tcp.services.mail-imaps.loadbalancer.server.port=993
+            - traefik.tcp.services.mail-imaps.loadbalancer.proxyProtocol.version=2
+
+            # POP3S
+            - traefik.tcp.routers.mail-pop3s.rule=HostSNI(`*`)
+            - traefik.tcp.routers.mail-pop3s.entrypoints=mail-pop3s
+            - traefik.tcp.routers.mail-pop3s.service=mail-pop3s
+            - traefik.tcp.services.mail-pop3s.loadbalancer.server.port=995
+            - traefik.tcp.services.mail-pop3s.loadbalancer.proxyProtocol.version=2
